@@ -1,0 +1,94 @@
+# =====================================================================
+# consumer-service · configuración
+# Mismo patrón que el producer: ${VARIABLE:valor_por_defecto_para_tu_PC}
+# =====================================================================
+
+server:
+  # 8081 para no chocar con el producer-service (8080)
+  port: ${SERVER_PORT:8081}
+
+spring:
+  application:
+    name: consumer-service
+
+  # ---------------- Base de datos (consumerdb) ----------------
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5434}/${DB_NAME:consumerdb}
+    username: ${DB_USER:consumer_user}
+    password: ${DB_PASSWORD:consumer_local_123}
+
+  jpa:
+    hibernate:
+      ddl-auto: none        # Flyway es el único que crea tablas
+    open-in-view: false
+
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+
+  # ---------------- Kafka (lado consumidor) ----------------
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9094}
+    consumer:
+      # Grupo de consumidores: Kafka reparte las particiones entre sus miembros
+      group-id: ${KAFKA_GROUP_ID:consumer-service-group}
+      # La PRIMERA vez que el grupo se conecta, lee el tópico desde el inicio
+      auto-offset-reset: earliest
+      # El offset lo confirma Spring después de procesar, no Kafka automáticamente
+      enable-auto-commit: false
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      # Envoltorio que evita que un mensaje mal formado bloquee el consumo
+      value-deserializer: org.springframework.kafka.support.serializer.ErrorHandlingDeserializer
+      properties:
+        # El deserializador real: convierte el JSON en OrderCreatedEvent
+        spring.deserializer.value.delegate.class: org.springframework.kafka.support.serializer.JsonDeserializer
+        spring.json.value.default.type: ec.edu.uce.uceshop.consumer.event.OrderCreatedEvent
+        # El producer no envía el nombre de su clase Java; usamos la nuestra
+        spring.json.use.type.headers: false
+    listener:
+      # Confirma (commit) el offset después de procesar CADA mensaje
+      ack-mode: record
+      # 3 hilos consumidores: uno por partición del tópico "orders"
+      concurrency: 3
+
+  # ---------------- RabbitMQ (se usará en la Fase 4) ----------------
+  rabbitmq:
+    host: ${RABBITMQ_HOST:localhost}
+    port: ${RABBITMQ_PORT:5672}
+    username: ${RABBITMQ_USER:uceshop}
+    password: ${RABBITMQ_PASSWORD:rabbit_local_123}
+
+# ---------------- Configuración propia ----------------
+app:
+  kafka:
+    topics:
+      orders:
+        name: ${KAFKA_TOPIC_ORDERS:orders}
+    # Si procesar un evento falla: 3 reintentos separados por 1 segundo
+    retry:
+      attempts: 3
+      interval-ms: 1000
+  rabbitmq:
+    exchange: ${RABBITMQ_EXCHANGE:orders.exchange}
+    queues:
+      notifications: orders.notifications
+      dlq: orders.dlq
+    routing-keys:
+      notifications: orders.processed
+      dlq: orders.failed
+
+  processing:
+    max-quantity: 100
+
+# ---------------- Actuator / métricas ----------------
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+  endpoint:
+    health:
+      show-details: always
+  metrics:
+    tags:
+      application: ${spring.application.name}

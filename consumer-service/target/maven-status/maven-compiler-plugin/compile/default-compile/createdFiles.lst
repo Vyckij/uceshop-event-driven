@@ -1,0 +1,16 @@
+ec\edu\uce\uceshop\consumer\exception\InvalidOrderEventException.class
+ec\edu\uce\uceshop\consumer\event\OrderCreatedEvent.class
+ec\edu\uce\uceshop\consumer\config\RabbitMqConfig.class
+ec\edu\uce\uceshop\consumer\kafka\OrderEventListener.class
+ec\edu\uce\uceshop\consumer\dto\ProcessedOrderResponse.class
+ec\edu\uce\uceshop\consumer\model\ProcessedOrder.class
+ec\edu\uce\uceshop\consumer\repository\ProcessedOrderRepository.class
+ec\edu\uce\uceshop\consumer\messaging\FailedOrderMessage.class
+ec\edu\uce\uceshop\consumer\ConsumerServiceApplication.class
+ec\edu\uce\uceshop\consumer\config\KafkaConsumerConfig.class
+ec\edu\uce\uceshop\consumer\exception\OrderRejectedException.class
+ec\edu\uce\uceshop\consumer\model\ProcessingStatus.class
+ec\edu\uce\uceshop\consumer\controller\ProcessedOrderController.class
+ec\edu\uce\uceshop\consumer\service\OrderProcessingService.class
+ec\edu\uce\uceshop\consumer\messaging\RabbitMessagePublisher.class
+ec\edu\uce\uceshop\consumer\messaging\OrderNotification.class
