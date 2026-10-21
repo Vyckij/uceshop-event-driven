@@ -1,0 +1,5 @@
+# Archivos que no se copian a la imagen
+README.md
+.git
+.vscode
+.idea

@@ -294,6 +294,39 @@ services:
       start_period: 30s
     networks:
       - uceshop-net
+# ===================================================================
+# DASHBOARD WEB (Nginx: archivos estáticos + proxy hacia las APIs)
+# ===================================================================
+  dashboard:
+    build:
+      context: ./uceshop-dashboard
+    image: uceshop/dashboard:${APP_VERSION}
+    container_name: uceshop-dashboard
+    restart: unless-stopped
+    depends_on:
+      producer-service:
+        condition: service_started
+      consumer-service:
+        condition: service_started
+      prometheus:
+        condition: service_started
+    ports:
+      - "127.0.0.1:${DASHBOARD_PORT}:8080"
+    environment:
+      PRODUCER_UPSTREAM: producer-service:8080
+      CONSUMER_UPSTREAM: consumer-service:8081
+      PROMETHEUS_UPSTREAM: prometheus:9090
+      NGINX_RESOLVER: 127.0.0.11             # DNS interno de Docker
+      CORS_ALLOW_ORIGIN: ""                  # vacío = sin CORS (no hace falta en local)
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:8080/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - uceshop-net
+
 
 # ---------------------------------------------------------------------
 # RED personalizada: todos los contenedores se ven por su nombre

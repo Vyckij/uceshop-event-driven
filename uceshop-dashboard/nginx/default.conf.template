@@ -1,0 +1,97 @@
+# =====================================================================
+# UCEShop Dashboard · Nginx
+#
+#  1) Sirve los archivos del dashboard (index.html, css, js, assets).
+#  2) Hace de PROXY hacia las APIs. El navegador solo habla con este
+#     Nginx (mismo origen), así que no hay bloqueos de CORS.
+#
+#     /api/producer/...   → producer-service
+#     /api/consumer/...   → consumer-service
+#     /api/prometheus/... → prometheus (solo consultas de lectura)
+#
+# Las ${VARIABLES} se reemplazan al arrancar el contenedor con las
+# variables de entorno (docker-compose en local, task definition en ECS).
+# =====================================================================
+
+server {
+    listen 8080;
+    server_name _;
+
+    root /usr/share/nginx/html;
+    index index.html;
+
+    # DNS para encontrar los servicios EN CADA PETICIÓN (si un servicio se
+    # reinicia y cambia de IP, Nginx lo vuelve a encontrar).
+    #   Docker Compose: 127.0.0.11   ·   AWS VPC: 169.254.169.253
+    resolver ${NGINX_RESOLVER} valid=10s ipv6=off;
+    resolver_timeout 5s;
+
+    proxy_connect_timeout 5s;
+    proxy_read_timeout 30s;
+
+    # CORS: vacío = desactivado. Solo se usa si el dashboard se publica
+    # en OTRO dominio (por ejemplo S3) y llama a este Nginx.
+    set $cors_origin "${CORS_ALLOW_ORIGIN}";
+
+    # ---------- Salud del propio dashboard (para healthchecks) ----------
+    location = /health {
+        access_log off;
+        default_type text/plain;
+        return 200 "OK\n";
+    }
+
+    # ---------- config.js nunca se guarda en caché ----------
+    location = /js/config.js {
+        add_header Cache-Control "no-store";
+    }
+
+    # ---------- Archivos estáticos ----------
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+
+    # ---------- Proxy: producer-service ----------
+    # Solo se exponen las rutas que usa el dashboard.
+    location ~ ^/api/producer/(orders(/.*)?|actuator/health(/.*)?)$ {
+        add_header Access-Control-Allow-Origin $cors_origin always;
+        add_header Access-Control-Allow-Methods "GET, POST, OPTIONS" always;
+        add_header Access-Control-Allow-Headers "Content-Type" always;
+        if ($request_method = OPTIONS) {
+            return 204;
+        }
+
+        set $producer_upstream ${PRODUCER_UPSTREAM};
+        rewrite ^/api/producer/(.*)$ /$1 break;
+        proxy_pass http://$producer_upstream;
+    }
+
+    # ---------- Proxy: consumer-service ----------
+    location ~ ^/api/consumer/(processed-orders|actuator/health(/.*)?)$ {
+        add_header Access-Control-Allow-Origin $cors_origin always;
+        add_header Access-Control-Allow-Methods "GET, OPTIONS" always;
+        add_header Access-Control-Allow-Headers "Content-Type" always;
+        if ($request_method = OPTIONS) {
+            return 204;
+        }
+
+        set $consumer_upstream ${CONSUMER_UPSTREAM};
+        rewrite ^/api/consumer/(.*)$ /$1 break;
+        proxy_pass http://$consumer_upstream;
+    }
+
+    # ---------- Proxy: Prometheus (SOLO consultas GET) ----------
+    location = /api/prometheus/api/v1/query {
+        add_header Access-Control-Allow-Origin $cors_origin always;
+        limit_except GET {
+            deny all;
+        }
+
+        set $prometheus_upstream ${PROMETHEUS_UPSTREAM};
+        proxy_pass http://$prometheus_upstream/api/v1/query$is_args$args;
+    }
+
+    # ---------- Cualquier otra ruta /api/ no está permitida ----------
+    location /api/ {
+        return 404;
+    }
+}

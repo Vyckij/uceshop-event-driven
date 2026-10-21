@@ -1,0 +1,439 @@
+/* =====================================================================
+ * UCEShop Dashboard · estilos
+ * Tema: azul oscuro + blanco, sobre Bootstrap 5
+ * ===================================================================== */
+
+/* ---------- Paleta y variables ---------- */
+:root {
+  --uce-navy: #0b1f3a;
+  --uce-navy-2: #12305a;
+  --uce-blue: #1d64d8;
+  --uce-blue-soft: #e8f0fd;
+  --uce-bg: #f3f6fb;
+  --uce-border: #e3e8f0;
+  --uce-text: #1b2533;
+  --uce-muted: #64748b;
+  --uce-green: #16a34a;
+  --uce-red: #dc2626;
+  --uce-amber: #d97706;
+  --uce-radius: 14px;
+  --uce-shadow: 0 6px 20px rgba(11, 31, 58, 0.07);
+
+  /* Bootstrap usa estas variables para el color primario */
+  --bs-primary: var(--uce-blue);
+  --bs-primary-rgb: 29, 100, 216;
+}
+
+html {
+  scroll-padding-top: 80px;   /* el menú fijo no tapa los títulos al navegar */
+}
+
+body {
+  background: var(--uce-bg);
+  color: var(--uce-text);
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  padding-top: 64px;          /* alto de la barra fija */
+}
+
+/* ---------- Barra de navegación ---------- */
+.uce-navbar {
+  background: var(--uce-navy);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.25);
+}
+
+.uce-navbar .nav-link {
+  color: rgba(255, 255, 255, 0.75);
+  font-weight: 500;
+}
+
+.uce-navbar .nav-link:hover,
+.uce-navbar .nav-link.active {
+  color: #ffffff;
+}
+
+.env-badge {
+  background: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+  font-weight: 500;
+  padding: 0.5em 0.9em;
+}
+
+/* ---------- Encabezado ---------- */
+.uce-hero {
+  background: linear-gradient(135deg, var(--uce-navy) 0%, var(--uce-navy-2) 60%, #1a4a8a 100%);
+  color: #ffffff;
+  padding: 3rem 0 3.5rem;
+}
+
+.hero-kicker {
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.8rem;
+  color: #8fbaff;
+  font-weight: 600;
+}
+
+.text-white-75 {
+  color: rgba(255, 255, 255, 0.78) !important;
+}
+
+.hero-stack {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: flex-start;
+}
+
+@media (min-width: 992px) {
+  .hero-stack {
+    justify-content: flex-end;
+  }
+}
+
+.tech-chip {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 999px;
+  padding: 0.35rem 0.8rem;
+  font-size: 0.85rem;
+  white-space: nowrap;
+}
+
+/* ---------- Tarjetas base ---------- */
+.uce-card {
+  border: 1px solid var(--uce-border);
+  border-radius: var(--uce-radius);
+  box-shadow: var(--uce-shadow);
+  background: #ffffff;
+}
+
+.uce-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #ffffff;
+  border-bottom: 1px solid var(--uce-border);
+  border-radius: var(--uce-radius) var(--uce-radius) 0 0 !important;
+  padding: 1rem 1.25rem;
+}
+
+.uce-card-header h2 {
+  color: var(--uce-navy);
+  font-weight: 700;
+}
+
+.section-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--uce-navy);
+  margin: 1rem 0 1rem;
+}
+
+/* ---------- Botones ---------- */
+.btn-uce {
+  background: var(--uce-blue);
+  border-color: var(--uce-blue);
+  font-weight: 600;
+  padding: 0.65rem 1rem;
+}
+
+.btn-uce:hover,
+.btn-uce:focus {
+  background: #1552b5;
+  border-color: #1552b5;
+}
+
+/* ---------- Historial de envíos ---------- */
+.history-list .list-group-item {
+  background: transparent;
+}
+
+/* ---------- Tabla de pedidos ---------- */
+.orders-table-wrapper {
+  max-height: 460px;
+  overflow-y: auto;
+  border: 1px solid var(--uce-border);
+  border-radius: 10px;
+}
+
+.orders-table thead th {
+  position: sticky;
+  top: 0;
+  background: var(--uce-navy);
+  color: #ffffff;
+  font-weight: 600;
+  font-size: 0.85rem;
+  white-space: nowrap;
+  z-index: 1;
+}
+
+.orders-table td {
+  font-size: 0.9rem;
+}
+
+.order-id {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.82rem;
+  color: var(--uce-navy);
+}
+
+.row-new {
+  animation: row-highlight 2.5s ease-out;
+}
+
+@keyframes row-highlight {
+  from { background-color: #dbeafe; }
+  to   { background-color: transparent; }
+}
+
+/* ---------- Estado de servicios ---------- */
+.status-card {
+  border-top: 4px solid var(--uce-border);
+}
+
+.status-card.is-up {
+  border-top-color: var(--uce-green);
+}
+
+.status-card.is-down {
+  border-top-color: var(--uce-red);
+}
+
+.status-pill {
+  font-weight: 700;
+  font-size: 0.95rem;
+  padding: 0.4rem 0.9rem;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.status-up {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.status-down {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.status-unknown {
+  background: #e2e8f0;
+  color: #475569;
+}
+
+.component-badge {
+  font-size: 0.78rem;
+  font-weight: 500;
+  border-radius: 999px;
+  padding: 0.3rem 0.7rem;
+  border: 1px solid var(--uce-border);
+  background: #f8fafc;
+  color: var(--uce-text);
+}
+
+.component-badge.up::before,
+.component-badge.down::before {
+  content: "";
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-right: 0.4rem;
+  vertical-align: middle;
+}
+
+.component-badge.up::before {
+  background: var(--uce-green);
+}
+
+.component-badge.down::before {
+  background: var(--uce-red);
+}
+
+/* ---------- Métricas ---------- */
+.metric-card .card-body {
+  position: relative;
+  padding: 1.4rem;
+}
+
+.metric-icon {
+  width: 46px;
+  height: 46px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  font-size: 1.35rem;
+  margin-bottom: 0.9rem;
+}
+
+.metric-label {
+  color: var(--uce-muted);
+  font-weight: 600;
+  margin-bottom: 0.15rem;
+}
+
+.metric-value {
+  font-size: 2.2rem;
+  font-weight: 800;
+  color: var(--uce-navy);
+  line-height: 1.1;
+  margin-bottom: 0.25rem;
+}
+
+.metric-help {
+  font-size: 0.8rem;
+  color: var(--uce-muted);
+  margin-bottom: 0;
+}
+
+.metric-blue .metric-icon  { background: #dbeafe; color: #1d4ed8; }
+.metric-green .metric-icon { background: #dcfce7; color: #15803d; }
+.metric-red .metric-icon   { background: #fee2e2; color: #b91c1c; }
+.metric-amber .metric-icon { background: #fef3c7; color: #b45309; }
+
+/* ---------- Monitoreo ---------- */
+.monitor-card {
+  color: var(--uce-text);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.monitor-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 26px rgba(11, 31, 58, 0.14);
+  color: var(--uce-text);
+}
+
+.monitor-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  display: grid;
+  place-items: center;
+  font-size: 1.5rem;
+  color: #ffffff;
+}
+
+.monitor-rabbit     { background: #ea580c; }
+.monitor-prometheus { background: #c2410c; }
+.monitor-grafana    { background: #f59e0b; }
+
+.monitor-card code {
+  display: block;
+  color: var(--uce-blue);
+  word-break: break-all;
+}
+
+.monitor-open {
+  display: inline-block;
+  margin-top: 0.9rem;
+  font-weight: 600;
+  color: var(--uce-blue);
+}
+
+/* ---------- Arquitectura ---------- */
+.arch-flow {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.5rem;
+}
+
+.arch-node {
+  text-align: center;
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.arch-node .card-body {
+  padding: 1.1rem 0.75rem;
+}
+
+.arch-icon {
+  font-size: 1.8rem;
+  color: var(--uce-blue);
+  display: block;
+  margin-bottom: 0.4rem;
+}
+
+.arch-kafka  { border-top: 4px solid #111827; }
+.arch-rabbit { border-top: 4px solid #ea580c; }
+.arch-db     { border-top: 4px solid #2563eb; }
+
+.arch-arrow {
+  text-align: center;
+  font-size: 1.4rem;
+  color: var(--uce-blue);
+  transform: rotate(90deg);   /* en móvil la flecha apunta hacia abajo */
+}
+
+@media (min-width: 992px) {
+  .arch-flow {
+    flex-direction: row;
+    align-items: center;
+  }
+
+  .arch-arrow {
+    transform: none;          /* en pantallas grandes apunta a la derecha */
+    flex: 0 0 auto;
+  }
+}
+
+.arch-dot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #cbd5e1;
+  vertical-align: middle;
+  margin-left: 0.25rem;
+}
+
+.arch-dot.up   { background: var(--uce-green); box-shadow: 0 0 0 4px rgba(22, 163, 74, 0.18); }
+.arch-dot.down { background: var(--uce-red);   box-shadow: 0 0 0 4px rgba(220, 38, 38, 0.18); }
+
+.arch-note {
+  background: var(--uce-blue-soft);
+  border-radius: 10px;
+  padding: 0.85rem 1rem;
+  font-size: 0.9rem;
+  height: 100%;
+}
+
+/* ---------- Pie de página ---------- */
+.uce-footer {
+  background: var(--uce-navy);
+  color: rgba(255, 255, 255, 0.7);
+  padding: 1.25rem 0;
+  margin-top: 2rem;
+}
+
+/* ---------- Total del pedido (solo lectura) ---------- */
+.order-total[readonly] {
+  background: var(--uce-blue-soft);
+  border-color: #c7d8f7;
+  color: var(--uce-navy);
+  font-size: 1.35rem;
+  font-weight: 800;
+  cursor: default;
+}
+
+.order-total[readonly]:focus {
+  background: var(--uce-blue-soft);
+  border-color: #c7d8f7;
+  box-shadow: none;
+}
+
+/* ---------- Crédito en el pie de página ---------- */
+.footer-credit {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  color: #ffffff;
+  font-weight: 600;
+}
+
+.footer-credit img {
+  width: 34px;
+  height: auto;
+}

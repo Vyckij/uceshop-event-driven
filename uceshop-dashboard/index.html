@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="UCEShop · Dashboard de demostración de la arquitectura orientada a eventos">
+  <title>UCEShop · Dashboard</title>
+
+  <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+
+  <!-- Bootstrap 5 e iconos (CDN) -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13/font/bootstrap-icons.min.css">
+
+  <!-- Estilos propios -->
+  <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body data-bs-spy="scroll" data-bs-target="#mainNav" data-bs-root-margin="0px 0px -60%" tabindex="0">
+
+  <!-- =============================================================
+       BARRA DE NAVEGACIÓN
+       ============================================================= -->
+  <nav id="mainNav" class="navbar navbar-expand-lg navbar-dark fixed-top uce-navbar">
+    <div class="container-xl">
+      <a class="navbar-brand d-flex align-items-center gap-2" href="#inicio">
+        <img src="assets/favicon.svg" alt="" width="32" height="32">
+        <span class="fw-bold">UCEShop</span>
+      </a>
+
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navLinks"
+              aria-controls="navLinks" aria-expanded="false" aria-label="Abrir menú">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+
+      <div class="collapse navbar-collapse" id="navLinks">
+        <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+          <li class="nav-item"><a class="nav-link" href="#pedido">Pedido</a></li>
+          <li class="nav-item"><a class="nav-link" href="#procesados">Procesados</a></li>
+          <li class="nav-item"><a class="nav-link" href="#servicios">Servicios</a></li>
+          <li class="nav-item"><a class="nav-link" href="#metricas">Métricas</a></li>
+          <li class="nav-item"><a class="nav-link" href="#monitoreo">Monitoreo</a></li>
+          <li class="nav-item"><a class="nav-link" href="#arquitectura">Arquitectura</a></li>
+        </ul>
+        <span id="envBadge" class="badge rounded-pill env-badge ms-lg-3">
+          <i class="bi bi-hdd-network me-1"></i><span id="envText">—</span>
+        </span>
+      </div>
+    </div>
+  </nav>
+
+  <!-- =============================================================
+       ENCABEZADO
+       ============================================================= -->
+  <header id="inicio" class="uce-hero">
+    <div class="container-xl">
+      <div class="row align-items-center g-4">
+        <div class="col-lg-8">
+          <p class="hero-kicker mb-2">Caso Práctico 2 · Arquitectura orientada a eventos</p>
+          <h1 class="display-6 fw-bold mb-3">Pedidos desacoplados con Kafka y RabbitMQ</h1>
+          <p class="lead mb-0 text-white-75">
+            Crea un pedido, síguelo a través de Kafka hasta el consumer y observa el sistema en tiempo real.
+          </p>
+        </div>
+        <div class="col-lg-4">
+          <div class="hero-stack">
+            <span class="tech-chip"><i class="bi bi-cup-hot"></i> Spring Boot</span>
+            <span class="tech-chip"><i class="bi bi-diagram-3"></i> Apache Kafka</span>
+            <span class="tech-chip"><i class="bi bi-envelope-paper"></i> RabbitMQ</span>
+            <span class="tech-chip"><i class="bi bi-database"></i> PostgreSQL</span>
+            <span class="tech-chip"><i class="bi bi-box-seam"></i> Docker</span>
+            <span class="tech-chip"><i class="bi bi-graph-up"></i> Prometheus · Grafana</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="container-xl py-4">
+
+    <!-- Aviso si se abre el archivo con doble clic (file://) -->
+    <div id="protocolWarning" class="alert alert-warning d-none" role="alert">
+      <i class="bi bi-exclamation-triangle-fill me-2"></i>
+      Abriste <strong>index.html</strong> directamente desde el disco. Las llamadas a las APIs no funcionarán así:
+      abre el dashboard desde <strong>http://localhost:8088</strong> (contenedor Nginx). Revisa el README.
+    </div>
+
+    <!-- Aviso si config.js no cargó -->
+    <div id="configWarning" class="alert alert-danger d-none" role="alert">
+      <i class="bi bi-x-octagon-fill me-2"></i>
+      No se encontró <strong>js/config.js</strong>. Revisa que el archivo exista y se cargue antes de app.js.
+    </div>
+
+    <div class="row g-4">
+
+      <!-- ===========================================================
+           SECCIÓN 1 · CREAR PEDIDO
+           =========================================================== -->
+      <section id="pedido" class="col-lg-4">
+        <div class="card uce-card h-100">
+          <div class="card-header uce-card-header">
+            <h2 class="h5 mb-0"><i class="bi bi-cart-plus me-2"></i>Crear pedido</h2>
+            <span class="badge text-bg-light border">POST /orders</span>
+          </div>
+          <div class="card-body">
+            <!-- novalidate: las reglas las valida el producer-service (así se ven sus errores 400) -->
+            <form id="orderForm" novalidate>
+              <div class="mb-3">
+                <label for="customerId" class="form-label">Customer ID</label>
+                <input type="text" class="form-control" id="customerId" placeholder="C-001" maxlength="60">
+              </div>
+                            <div class="mb-3">
+                <label for="product" class="form-label">Producto</label>
+                <!-- Las opciones se crean desde PRODUCT_CATALOG (js/app.js) -->
+                <select class="form-select" id="product">
+                  <option value="" selected>Selecciona un producto…</option>
+                </select>
+              </div>
+              <div class="row g-3 mb-3">
+                <div class="col-5">
+                  <label for="quantity" class="form-label">Cantidad</label>
+                  <input type="number" class="form-control" id="quantity" placeholder="1" min="1" step="1">
+                </div>
+                <div class="col-7">
+                  <label for="unitPrice" class="form-label">Precio unitario</label>
+                  <div class="input-group">
+                    <span class="input-group-text">$</span>
+                    <input type="number" class="form-control" id="unitPrice" placeholder="0.00" min="0" step="0.01">
+                  </div>
+                </div>
+                <div class="col-12 mt-1">
+                  <div class="form-text mt-0">El precio se completa al elegir el producto y puedes editarlo.</div>
+                </div>
+              </div>
+              <div class="mb-3">
+                <label for="orderTotal" class="form-label">Total</label>
+                <input type="text" class="form-control order-total" id="orderTotal" value="$0,00" readonly
+                       aria-describedby="totalHelp">
+                <div id="totalHelp" class="form-text">Cantidad × precio unitario (se calcula solo)</div>
+              </div>
+
+              <button type="submit" id="submitButton" class="btn btn-primary btn-uce w-100">
+                <span class="spinner-border spinner-border-sm me-2 d-none" id="submitSpinner" aria-hidden="true"></span>
+                <i class="bi bi-send me-1" id="submitIcon"></i>Enviar Pedido
+              </button>
+
+              <div class="d-flex gap-2 mt-2">
+                <button type="button" class="btn btn-outline-secondary btn-sm flex-fill" id="fillValidButton">
+                  <i class="bi bi-magic me-1"></i>Ejemplo válido
+                </button>
+                <button type="button" class="btn btn-outline-danger btn-sm flex-fill" id="fillDlqButton"
+                        title="150 unidades: el consumer lo rechaza y lo envía a la DLQ">
+                  <i class="bi bi-exclamation-octagon me-1"></i>Ejemplo DLQ
+                </button>
+              </div>
+            </form>
+
+            <!-- Resultado del último envío -->
+            <div id="orderResult" class="mt-3" aria-live="polite"></div>
+
+            <!-- Historial de envíos -->
+            <div class="mt-3">
+              <h3 class="h6 text-secondary mb-2"><i class="bi bi-clock-history me-1"></i>Últimos envíos</h3>
+              <ul id="orderHistory" class="list-group list-group-flush small history-list">
+                <li class="list-group-item text-secondary px-0">Aún no se han enviado pedidos.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===========================================================
+           SECCIÓN 2 · PEDIDOS PROCESADOS
+           =========================================================== -->
+      <section id="procesados" class="col-lg-8">
+        <div class="card uce-card h-100">
+          <div class="card-header uce-card-header flex-wrap gap-2">
+            <h2 class="h5 mb-0"><i class="bi bi-check2-square me-2"></i>Pedidos procesados</h2>
+            <div class="d-flex align-items-center gap-3 flex-wrap">
+              <span class="badge text-bg-light border">GET /processed-orders</span>
+              <div class="form-check form-switch mb-0">
+                <input class="form-check-input" type="checkbox" role="switch" id="autoRefreshSwitch" checked>
+                <label class="form-check-label small" for="autoRefreshSwitch">Auto (5 s)</label>
+              </div>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="row g-2 align-items-center mb-3">
+              <div class="col-sm-7">
+                <div class="input-group">
+                  <span class="input-group-text"><i class="bi bi-search"></i></span>
+                  <input type="search" class="form-control" id="productFilter" placeholder="Filtrar por producto…">
+                </div>
+              </div>
+              <div class="col-sm-5 text-sm-end small text-secondary">
+                <span id="ordersCount" class="badge text-bg-primary me-2">0</span>
+                <span id="ordersUpdated">Sin datos todavía</span>
+              </div>
+            </div>
+
+            <div class="table-responsive orders-table-wrapper">
+              <table class="table table-hover align-middle mb-0 orders-table">
+                <thead>
+                  <tr>
+                    <th scope="col">Order ID</th>
+                    <th scope="col">Customer ID</th>
+                    <th scope="col">Producto</th>
+                    <th scope="col" class="text-end">Quantity</th>
+                    <th scope="col" class="text-end">Total</th>
+                    <th scope="col" class="text-center">Partición</th>
+                    <th scope="col">Fecha</th>
+                  </tr>
+                </thead>
+                <tbody id="ordersTableBody">
+                  <tr><td colspan="7" class="text-center text-secondary py-4">Cargando…</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===========================================================
+           SECCIÓN 3 · ESTADO DE SERVICIOS
+           =========================================================== -->
+      <section id="servicios" class="col-12">
+        <h2 class="section-title"><i class="bi bi-heart-pulse me-2"></i>Estado de servicios</h2>
+        <div class="row g-4">
+          <div class="col-md-6">
+            <div class="card uce-card status-card h-100" id="producerCard">
+              <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start">
+                  <div>
+                    <h3 class="h5 mb-1">Producer Service</h3>
+                    <p class="text-secondary small mb-0">Recibe pedidos y publica en Kafka</p>
+                  </div>
+                  <span class="status-pill status-unknown" id="producerStatus">⚪ Verificando</span>
+                </div>
+                <div class="d-flex flex-wrap gap-2 mt-3" id="producerComponents"></div>
+                <p class="small text-secondary mt-3 mb-0" id="producerMeta">—</p>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="card uce-card status-card h-100" id="consumerCard">
+              <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start">
+                  <div>
+                    <h3 class="h5 mb-1">Consumer Service</h3>
+                    <p class="text-secondary small mb-0">Consume Kafka, guarda y notifica</p>
+                  </div>
+                  <span class="status-pill status-unknown" id="consumerStatus">⚪ Verificando</span>
+                </div>
+                <div class="d-flex flex-wrap gap-2 mt-3" id="consumerComponents"></div>
+                <p class="small text-secondary mt-3 mb-0" id="consumerMeta">—</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===========================================================
+           SECCIÓN 4 · MÉTRICAS DEL SISTEMA
+           =========================================================== -->
+      <section id="metricas" class="col-12">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+          <h2 class="section-title mb-0"><i class="bi bi-speedometer2 me-2"></i>Métricas del sistema</h2>
+          <span class="small text-secondary">
+            Fuente: Prometheus · <span id="metricsSource" class="fw-semibold">—</span>
+          </span>
+        </div>
+        <p class="small text-secondary mt-1">Contadores acumulados desde el último arranque de cada servicio.</p>
+        <div class="row g-4">
+          <div class="col-sm-6 col-xl-3">
+            <div class="card uce-card metric-card metric-blue h-100">
+              <div class="card-body">
+                <div class="metric-icon"><i class="bi bi-send-check"></i></div>
+                <p class="metric-label">Pedidos publicados</p>
+                <p class="metric-value" id="metricPublished">—</p>
+                <p class="metric-help">producer → Kafka</p>
+              </div>
+            </div>
+          </div>
+          <div class="col-sm-6 col-xl-3">
+            <div class="card uce-card metric-card metric-green h-100">
+              <div class="card-body">
+                <div class="metric-icon"><i class="bi bi-check2-circle"></i></div>
+                <p class="metric-label">Pedidos procesados</p>
+                <p class="metric-value" id="metricProcessed">—</p>
+                <p class="metric-help">consumer → consumerdb</p>
+              </div>
+            </div>
+          </div>
+          <div class="col-sm-6 col-xl-3">
+            <div class="card uce-card metric-card metric-red h-100">
+              <div class="card-body">
+                <div class="metric-icon"><i class="bi bi-x-octagon"></i></div>
+                <p class="metric-label">Eventos fallidos</p>
+                <p class="metric-value" id="metricFailed">—</p>
+                <p class="metric-help">DLQ + errores al publicar</p>
+              </div>
+            </div>
+          </div>
+          <div class="col-sm-6 col-xl-3">
+            <div class="card uce-card metric-card metric-amber h-100">
+              <div class="card-body">
+                <div class="metric-icon"><i class="bi bi-bell"></i></div>
+                <p class="metric-label">Notificaciones enviadas</p>
+                <p class="metric-value" id="metricNotifications">—</p>
+                <p class="metric-help">consumer → RabbitMQ</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===========================================================
+           SECCIÓN 5 · MONITOREO
+           =========================================================== -->
+      <section id="monitoreo" class="col-12">
+        <h2 class="section-title"><i class="bi bi-display me-2"></i>Monitoreo</h2>
+        <div class="row g-4">
+          <div class="col-md-4">
+            <a class="card uce-card monitor-card h-100 text-decoration-none" data-config-link="RABBITMQ_URL"
+               target="_blank" rel="noopener noreferrer">
+              <div class="card-body">
+                <div class="monitor-icon monitor-rabbit"><i class="bi bi-envelope-paper"></i></div>
+                <h3 class="h5 mt-3 mb-1">RabbitMQ</h3>
+                <p class="small text-secondary mb-2">Colas orders.notifications y orders.dlq</p>
+                <code class="small" data-config-text="RABBITMQ_URL">—</code>
+                <span class="monitor-open">Abrir <i class="bi bi-box-arrow-up-right"></i></span>
+              </div>
+            </a>
+          </div>
+          <div class="col-md-4">
+            <a class="card uce-card monitor-card h-100 text-decoration-none" data-config-link="PROMETHEUS_URL"
+               target="_blank" rel="noopener noreferrer">
+              <div class="card-body">
+                <div class="monitor-icon monitor-prometheus"><i class="bi bi-fire"></i></div>
+                <h3 class="h5 mt-3 mb-1">Prometheus</h3>
+                <p class="small text-secondary mb-2">Objetivos (targets) y consultas PromQL</p>
+                <code class="small" data-config-text="PROMETHEUS_URL">—</code>
+                <span class="monitor-open">Abrir <i class="bi bi-box-arrow-up-right"></i></span>
+              </div>
+            </a>
+          </div>
+          <div class="col-md-4">
+            <a class="card uce-card monitor-card h-100 text-decoration-none" data-config-link="GRAFANA_URL"
+               target="_blank" rel="noopener noreferrer">
+              <div class="card-body">
+                <div class="monitor-icon monitor-grafana"><i class="bi bi-bar-chart-line"></i></div>
+                <h3 class="h5 mt-3 mb-1">Grafana</h3>
+                <p class="small text-secondary mb-2">Dashboard "UCEShop · Flujo de pedidos"</p>
+                <code class="small" data-config-text="GRAFANA_URL">—</code>
+                <span class="monitor-open">Abrir <i class="bi bi-box-arrow-up-right"></i></span>
+              </div>
+            </a>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===========================================================
+           SECCIÓN 6 · ARQUITECTURA
+           =========================================================== -->
+      <section id="arquitectura" class="col-12">
+        <h2 class="section-title"><i class="bi bi-diagram-3 me-2"></i>Arquitectura</h2>
+        <div class="arch-flow">
+
+          <div class="card uce-card arch-node">
+            <div class="card-body">
+              <i class="bi bi-window-sidebar arch-icon"></i>
+              <h3 class="h6 mb-1">Frontend</h3>
+              <p class="small text-secondary mb-0">HTML + Bootstrap · Nginx</p>
+            </div>
+          </div>
+          <div class="arch-arrow" aria-hidden="true"><i class="bi bi-arrow-right"></i></div>
+
+          <div class="card uce-card arch-node">
+            <div class="card-body">
+              <i class="bi bi-cup-hot arch-icon"></i>
+              <h3 class="h6 mb-1">Producer <span class="arch-dot" data-health-dot="producer"></span></h3>
+              <p class="small text-secondary mb-0">:8080 · guarda en producerdb</p>
+            </div>
+          </div>
+          <div class="arch-arrow" aria-hidden="true"><i class="bi bi-arrow-right"></i></div>
+
+          <div class="card uce-card arch-node arch-kafka">
+            <div class="card-body">
+              <i class="bi bi-diagram-3 arch-icon"></i>
+              <h3 class="h6 mb-1">Kafka</h3>
+              <p class="small text-secondary mb-0">tópico <code>orders</code> · 3 particiones</p>
+            </div>
+          </div>
+          <div class="arch-arrow" aria-hidden="true"><i class="bi bi-arrow-right"></i></div>
+
+          <div class="card uce-card arch-node">
+            <div class="card-body">
+              <i class="bi bi-gear-wide-connected arch-icon"></i>
+              <h3 class="h6 mb-1">Consumer <span class="arch-dot" data-health-dot="consumer"></span></h3>
+              <p class="small text-secondary mb-0">:8081 · idempotente</p>
+            </div>
+          </div>
+          <div class="arch-arrow" aria-hidden="true"><i class="bi bi-arrow-right"></i></div>
+
+          <div class="card uce-card arch-node arch-rabbit">
+            <div class="card-body">
+              <i class="bi bi-envelope-paper arch-icon"></i>
+              <h3 class="h6 mb-1">RabbitMQ</h3>
+              <p class="small text-secondary mb-0">notificaciones · DLQ</p>
+            </div>
+          </div>
+          <div class="arch-arrow" aria-hidden="true"><i class="bi bi-arrow-right"></i></div>
+
+          <div class="card uce-card arch-node arch-db">
+            <div class="card-body">
+              <i class="bi bi-database arch-icon"></i>
+              <h3 class="h6 mb-1">PostgreSQL</h3>
+              <p class="small text-secondary mb-0">producerdb · consumerdb</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <footer class="uce-footer">
+    <div class="container-xl d-flex flex-wrap justify-content-between align-items-center gap-2 small">
+      <span class="footer-credit">
+        <img src="assets/logo-uce.png" alt="" width="34" height="32">
+        Jessica Victoria - 2026
+      </span>
+      <span>Última actualización: <span id="lastRefresh">—</span></span>
+    </div>
+  </footer>
+
+  <!-- Bootstrap JS (menú responsive y scrollspy) -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+
+  <!-- 1) Configuración (SIEMPRE antes que app.js) -->
+  <script src="js/config.js"></script>
+  <!-- 2) Lógica de la aplicación -->
+  <script src="js/app.js"></script>
+</body>
+</html>
