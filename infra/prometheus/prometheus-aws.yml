@@ -1,0 +1,53 @@
+# =====================================================================
+# UCEShop · Prometheus (AWS · ECS Fargate)
+#
+# Diferencia con el prometheus.yml local: los objetivos se descubren por
+# DNS (Cloud Map, espacio de nombres uceshop.local). Si el consumer tiene
+# 3 tareas, el nombre devuelve 3 IP y Prometheus ve 3 objetivos.
+#
+# Los nombres de los jobs son los mismos que en local, así el dashboard
+# de Grafana funciona sin cambios.
+# =====================================================================
+
+global:
+  scrape_interval: 15s
+  scrape_timeout: 10s
+  evaluation_interval: 15s
+  external_labels:
+    project: uceshop
+    environment: aws
+
+scrape_configs:
+
+  - job_name: prometheus
+    static_configs:
+      - targets: ["localhost:9090"]
+
+  - job_name: producer-service
+    metrics_path: /actuator/prometheus
+    dns_sd_configs:
+      - names: ["producer-service.uceshop.local"]
+        type: A
+        port: 8080
+        refresh_interval: 30s
+
+  - job_name: consumer-service
+    metrics_path: /actuator/prometheus
+    dns_sd_configs:
+      - names: ["consumer-service.uceshop.local"]
+        type: A
+        port: 8081
+        refresh_interval: 30s
+
+  # kafka-exporter corre como segundo contenedor de la MISMA tarea
+  - job_name: kafka
+    static_configs:
+      - targets: ["localhost:9308"]
+
+  - job_name: rabbitmq
+    metrics_path: /metrics/per-object
+    dns_sd_configs:
+      - names: ["rabbitmq.uceshop.local"]
+        type: A
+        port: 15692
+        refresh_interval: 30s

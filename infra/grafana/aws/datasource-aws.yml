@@ -1,0 +1,17 @@
+# =====================================================================
+# Grafana · fuente de datos para AWS
+# Igual que la local, pero apunta al nombre interno de Cloud Map.
+# El Dockerfile la copia en lugar de provisioning/datasources/datasource.yml
+# =====================================================================
+apiVersion: 1
+
+datasources:
+  - name: Prometheus
+    uid: prometheus              # el dashboard usa este uid
+    type: prometheus
+    access: proxy
+    url: http://prometheus.uceshop.local:9090
+    isDefault: true
+    editable: false
+    jsonData:
+      timeInterval: 15s

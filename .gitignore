@@ -1,0 +1,19 @@
+# Terraform
+**/.terraform/*
+*.tfstate
+*.tfstate.*
+*.tfvars
+!*.tfvars.example
+
+# AWS
+token.txt
+
+# Environment
+.env
+
+# Java
+target/
+
+# IDE
+.idea/
+.vscode/
