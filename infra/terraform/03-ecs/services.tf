@@ -183,6 +183,10 @@ module "rabbitmq" {
   RABBITMQ_USE_LONGNAME = "false"
 }
 
+secrets = {
+  RABBITMQ_DEFAULT_PASS = local.secret_arn["rabbitmq-password"]
+}
+
 health_check = {
   command      = ["CMD-SHELL", "bash -c '</dev/tcp/127.0.0.1/15692' || exit 1"]
   interval     = 30

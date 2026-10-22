@@ -110,7 +110,7 @@ locals {
 
 resource "aws_lb" "internal" {
   name               = "${local.name_prefix}-nlb"
-  internal           = true
+  internal           = false
   load_balancer_type = "network"
   subnets            = local.public_subnet_ids
   security_groups    = [aws_security_group.nlb.id]

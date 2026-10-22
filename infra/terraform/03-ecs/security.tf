@@ -25,11 +25,11 @@ resource "aws_vpc_security_group_ingress_rule" "nlb_from_vpc" {
   for_each = local.nlb_endpoints
 
   security_group_id = aws_security_group.nlb.id
-  cidr_ipv4         = data.aws_vpc.this.cidr_block
+  cidr_ipv4         = "0.0.0.0/0"
   ip_protocol       = "tcp"
   from_port         = each.value.listener_port
   to_port           = each.value.listener_port
-  description       = "VPC hacia ${each.key}"
+  description       = "Internet hacia ${each.key}"
 
   tags = {
     Name = "nlb-${each.key}"
