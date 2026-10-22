@@ -3,7 +3,7 @@
 # La imagen oficial + los plugins de consola (15672) y métricas (15692).
 # En local, Docker Compose monta el mismo archivo enabled_plugins.
 # =====================================================================
-FROM rabbitmq:4.3-management
+FROM rabbitmq:3.13-management
 
 COPY --chown=rabbitmq:rabbitmq enabled_plugins /etc/rabbitmq/enabled_plugins
 
