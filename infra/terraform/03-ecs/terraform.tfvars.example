@@ -1,0 +1,84 @@
+# =====================================================================
+# 03-ecs · valores del entorno (PLANTILLA)
+#
+# 1) Copia este archivo como terraform.tfvars
+# 2) project y environment deben ser IGUALES a los de 02-plataforma
+# 3) terraform.tfvars NO se sube a GitHub
+# =====================================================================
+
+# ---------- General ----------
+aws_region  = "us-east-1"
+project     = "uceshop"
+environment = "academy"
+
+extra_tags = {
+  Course = "Caso Practico 2"
+}
+
+databases = {
+  producer = "producerdb"
+  consumer = "consumerdb"
+}
+
+# ---------- Imágenes en ECR ----------
+ecr_repository_prefix = "uceshop"
+
+image_tags = {
+  "kafka"            = "4.3.1"
+  "kafka-exporter"   = "v1.10.0"
+  "rabbitmq"         = "1.0.0"
+  "producer-service" = "1.0.0"
+  "consumer-service" = "1.0.0"
+  "prometheus"       = "1.0.0"
+  "grafana"          = "1.0.0"
+  "dashboard"        = "1.0.0"
+}
+
+# Solo si kafka o kafka-exporter NO están en ECR: se descargan de Docker Hub
+image_overrides = {
+  "kafka"          = "apache/kafka:4.3.1"
+  "kafka-exporter" = "danielqsj/kafka-exporter:v1.10.0"
+}
+
+
+# ---------- Tareas (cpu 256 = 0.25 vCPU · memoria en MB) ----------
+services = {
+  "kafka"            = { cpu = 512, memory = 2048, desired_count = 1, health_check_grace_period = 120 }
+  "rabbitmq"         = { cpu = 256, memory = 1024, desired_count = 1, health_check_grace_period = 120 }
+  "producer-service" = { cpu = 256, memory = 1024, desired_count = 1, health_check_grace_period = 300 }
+  "consumer-service" = { cpu = 256, memory = 1024, desired_count = 1, health_check_grace_period = 300 } # hasta 3 (una por partición)
+  "prometheus"       = { cpu = 256, memory = 1024, desired_count = 1, health_check_grace_period = 60 }
+  "grafana"          = { cpu = 256, memory = 512, desired_count = 1, health_check_grace_period = 120 }
+  "dashboard"        = { cpu = 256, memory = 512, desired_count = 1, health_check_grace_period = 60 }
+}
+
+# true = todas las tareas en 0 (por ejemplo de noche). Balanceadores y RDS siguen cobrando.
+paused = false
+
+capacity_provider = "FARGATE"
+cpu_architecture  = "X86_64" # las imágenes se construyeron con --platform linux/amd64
+assign_public_ip  = true
+
+# ---------- NLB interno ----------
+nlb_tcp_idle_timeout_seconds = 3600
+deregistration_delay_seconds = 15
+
+# ---------- Aplicaciones ----------
+kafka_cluster_id                = "4L6g3nShT-eMCtK--X86sw"
+kafka_heap_opts                 = "-Xms512m -Xmx512m"
+kafka_topic_orders              = "orders"
+kafka_group_id                  = "consumer-service-group"
+kafka_exporter_protocol_version = "3.9.0"
+rabbitmq_user                   = "uceshop"
+grafana_admin_user              = "admin"
+prometheus_retention            = "3d"
+db_sslmode                      = "require"
+
+# ---------- Permisos ----------
+create_iam_roles = false # AWS Academy: usa LabRole
+lab_role_name    = "LabRole"
+
+# ---------- Operación ----------
+log_retention_days     = 1
+enable_execute_command = true
+wait_for_steady_state  = true
